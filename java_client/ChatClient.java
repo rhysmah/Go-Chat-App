@@ -4,7 +4,7 @@ import java.net.*;
 public class ChatClient {
     public static void main(String[] args) throws IOException {
         var host = "localhost";
-        var port = 6666;
+        var port = 4000;
 
         var socket = new Socket(host, port);
         var input = new BufferedReader(new InputStreamReader(socket.getInputStream()));

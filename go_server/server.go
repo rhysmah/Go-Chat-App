@@ -1,3 +1,5 @@
+// TODO: Display to whom user sent messages
+
 package main
 
 import (
@@ -196,6 +198,7 @@ func (server *ChatServer) sendToAllUsers(conn net.Conn, senderNickname string, m
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 
+	// Sender does not receive their own message
 	for connection := range server.users {
 		if connection != conn {
 			fmt.Fprintf(connection, "%s said: %s\n", senderNickname, message)
@@ -209,6 +212,8 @@ func (server *ChatServer) sendToSpecificUsers(conn net.Conn, senderNickname stri
 
 	for _, receiver := range recipients {
 		for receiverConnection, receiverNickname := range server.users {
+
+			// Sender cannot message themselves
 			if receiverNickname == receiver && conn != receiverConnection {
 				fmt.Fprintf(receiverConnection, "%s said: %s\n", senderNickname, message)
 			}

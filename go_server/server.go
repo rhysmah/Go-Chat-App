@@ -51,6 +51,7 @@ func (chatServer *ChatServer) start() {
 	defer listen.Close()
 
 	log.Printf("Server started on %s:%s\n", HOST, PORT)
+
 	for {
 		conn, err := listen.Accept()
 		if err != nil {
@@ -78,6 +79,7 @@ func (server *ChatServer) handleClientConnection(conn net.Conn) {
 	// Check if client has left server; if so, delete them from client list
 	if err := scanner.Err(); err != nil {
 		log.Printf("Error reading from %s: %v", conn.RemoteAddr(), err)
+
 	} else {
 		log.Printf("Client %s disconnected\n", conn.RemoteAddr())
 		server.broadcastMsg(UserLeavesServer, conn, server.users[conn])
@@ -95,6 +97,7 @@ func (server *ChatServer) handleUserCommands(userCommand string, conn net.Conn) 
 	args := strings.SplitN(userCommand, " ", 3)
 
 	switch {
+
 		case len(args) >= 1 && args[0] == LIST:
 			server.handleListCommand(conn)
 
@@ -153,6 +156,7 @@ func (server *ChatServer) handleNicknameCommand(conn net.Conn, desiredNickname s
 	if currentNickname, exists := server.users[conn]; exists {
 		fmt.Fprintf(conn, "You changed your nickname from %s to %s\n", currentNickname, desiredNickname)
 		server.broadcastMsg(UserChangesNickname, conn, currentNickname, desiredNickname)
+
 	} else {
 		fmt.Fprintf(conn, "Nickname registered as %s\n", desiredNickname)
 		server.broadcastMsg(UserJoinsServer, conn, desiredNickname)

@@ -1,5 +1,3 @@
-// TODO: Display to whom user sent messages
-
 package main
 
 import (
@@ -32,6 +30,7 @@ const (
 	HOST = "localhost"
 	PORT = "4000"
 	TYPE = "tcp"
+
 	LIST = "/LIST"
 	NICK = "/NICK"
 	MSG  = "/MSG"
@@ -65,6 +64,7 @@ func (chatServer *ChatServer) start() {
 // handleClientConnection manages a single client connection, reading commands and responding appropriately.
 // It ensures the connection is closed when the function returns and broadcasts a disconnect message if applicable.
 func (server *ChatServer) handleClientConnection(conn net.Conn) {
+
 	log.Printf("Client %s connected to server\n", conn.RemoteAddr().String())
 
 	defer conn.Close()
@@ -114,6 +114,7 @@ func (server *ChatServer) handleUserCommands(userCommand string, conn net.Conn) 
 
 // handleListCommand sends a list of currently connected users to the requesting client.
 func (server *ChatServer) handleListCommand(conn net.Conn) {
+
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 
@@ -148,14 +149,15 @@ func (server *ChatServer) handleNicknameCommand(conn net.Conn, desiredNickname s
 			return
 		}
 	}
+
 	if currentNickname, exists := server.users[conn]; exists {
 		fmt.Fprintf(conn, "You changed your nickname from %s to %s\n", currentNickname, desiredNickname)
 		server.broadcastMsg(UserChangesNickname, conn, currentNickname, desiredNickname)
-
 	} else {
 		fmt.Fprintf(conn, "Nickname registered as %s\n", desiredNickname)
 		server.broadcastMsg(UserJoinsServer, conn, desiredNickname)
 	}
+
 	server.users[conn] = desiredNickname
 }
 
@@ -163,18 +165,18 @@ func (server *ChatServer) handleNicknameCommand(conn net.Conn, desiredNickname s
 // It must start with a letter, contain only letters, numbers, and underscores, and be 1-10 characters long.
 func validateNickname(nickname string) (bool, string) {
 
-	sannitizedNickname := strings.Trim(nickname, " ")
+	sanitizedNickname := strings.Trim(nickname, " ")
 
-	if len(sannitizedNickname) < 1 || len(sannitizedNickname) > 10 {
+	if len(sanitizedNickname) < 1 || len(sanitizedNickname) > 10 {
 		return false, "Nickname must be between 1 and 10 characters"
 	}
 
-	firstLetter := rune(sannitizedNickname[0])
+	firstLetter := rune(sanitizedNickname[0])
 	if !unicode.IsLetter(firstLetter) {
 		return false, "Nickname must start with a letter"
 	}
 
-	if !validNicknamePattern.MatchString(sannitizedNickname) {
+	if !validNicknamePattern.MatchString(sanitizedNickname) {
 		return false, "Nickname can contain only letters, numbers, and underscores"
 	}
 
@@ -191,15 +193,19 @@ func (server *ChatServer) handleMessageCommand(conn net.Conn, recipients string,
 		fmt.Fprintln(conn, "You must register a nickname before you can send a message")
 		return
 	}
+
 	switch {
+
 		case len(parsedRecipients) == 1 && parsedRecipients[0] == "*":
 			server.sendToAllUsers(conn, senderNickname, message)
+
 		default:
 			server.sendToSpecificUsers(conn, senderNickname, parsedRecipients, message)
 	}
 }
 
 func (server *ChatServer) sendToAllUsers(conn net.Conn, senderNickname string, message string) {
+
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 
@@ -212,6 +218,7 @@ func (server *ChatServer) sendToAllUsers(conn net.Conn, senderNickname string, m
 }
 
 func (server *ChatServer) sendToSpecificUsers(conn net.Conn, senderNickname string, recipients []string, message string) {
+
 	server.mutex.Lock()
 	defer server.mutex.Unlock()
 
@@ -255,8 +262,10 @@ func (server *ChatServer) broadcastMsg(broadcastType BroadcastType, excludeConn 
 }
 
 func main() {
+
 	chatServer := ChatServer{
 		users: make(map[net.Conn]string),
 	}
+
 	chatServer.start()
 }
